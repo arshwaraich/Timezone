@@ -637,18 +637,10 @@ struct ContentView: View {
             Button {
                 showingTimezonePicker = true
             } label: {
-                Text("+ Add Timezone")
+                Label("Add Timezone", systemImage: "plus")
                     .font(.system(size: 14))
-                    .foregroundColor(Color(white: 0.7))
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(Color(white: 0.12))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                    )
             }
+            .buttonStyle(.glass)
             .padding(.bottom, 8)
         }
         .sheet(isPresented: $showingTimezonePicker) {
