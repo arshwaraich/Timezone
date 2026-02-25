@@ -68,6 +68,74 @@ func formatGMTOffset(_ tz: TimeZone) -> String {
     return String(format: "GMT%+d:%02d", hours, minutes)
 }
 
+// Alias name → timezone identifier for popular cities not in IANA
+let CITY_ALIASES: [String: String] = [
+    // India
+    "New Delhi": "Asia/Kolkata",
+    "Mumbai": "Asia/Kolkata",
+    "Bangalore": "Asia/Kolkata",
+    "Chennai": "Asia/Kolkata",
+    "Hyderabad": "Asia/Kolkata",
+    "Pune": "Asia/Kolkata",
+    // China
+    "Beijing": "Asia/Shanghai",
+    "Shenzhen": "Asia/Shanghai",
+    "Guangzhou": "Asia/Shanghai",
+    "Chengdu": "Asia/Shanghai",
+    // Japan
+    "Osaka": "Asia/Tokyo",
+    "Kyoto": "Asia/Tokyo",
+    // South Korea
+    "Busan": "Asia/Seoul",
+    // USA
+    "San Francisco": "America/Los_Angeles",
+    "Seattle": "America/Los_Angeles",
+    "Boston": "America/New_York",
+    "Washington DC": "America/New_York",
+    "Miami": "America/New_York",
+    "Atlanta": "America/New_York",
+    "Dallas": "America/Chicago",
+    "Houston": "America/Chicago",
+    // Canada
+    "Vancouver": "America/Vancouver",
+    "Montreal": "America/Toronto",
+    "Ottawa": "America/Toronto",
+    "Calgary": "America/Edmonton",
+    // Europe
+    "Milan": "Europe/Rome",
+    "Barcelona": "Europe/Madrid",
+    "Munich": "Europe/Berlin",
+    "Frankfurt": "Europe/Berlin",
+    "Edinburgh": "Europe/London",
+    "Manchester": "Europe/London",
+    // Middle East
+    "Abu Dhabi": "Asia/Dubai",
+    "Riyadh": "Asia/Riyadh",
+    "Tel Aviv": "Asia/Jerusalem",
+    // Australia
+    "Brisbane": "Australia/Brisbane",
+    "Perth": "Australia/Perth",
+    // South America
+    "Buenos Aires": "America/Argentina/Buenos_Aires",
+    "Rio de Janeiro": "America/Sao_Paulo",
+    "Bogota": "America/Bogota",
+    "Lima": "America/Lima",
+    // Africa
+    "Cape Town": "Africa/Johannesburg",
+    "Lagos": "Africa/Lagos",
+    "Nairobi": "Africa/Nairobi",
+    "Cairo": "Africa/Cairo",
+]
+
+struct TimezonePickerItem: Identifiable {
+    let id: String  // unique key for the list
+    let displayName: String
+    let identifier: String
+    let isAlias: Bool
+
+    var region: String { regionPath(for: identifier) }
+}
+
 // MARK: - Timezone Helpers
 
 func getAdjustedDate(timeOffset: Double) -> Date {
@@ -516,14 +584,29 @@ struct ContentView: View {
 
     // MARK: - Timezone List
 
-    private var filteredSystemTimezones: [String] {
-        let all = TimeZone.knownTimeZoneIdentifiers.filter { $0.contains("/") }
-        if timezoneSearchText.isEmpty { return all }
+    private var pickerItems: [TimezonePickerItem] {
+        // Build items from system timezones (skip bare abbreviations like "GMT", "EST")
+        var items: [TimezonePickerItem] = TimeZone.knownTimeZoneIdentifiers
+            .filter { $0.contains("/") }
+            .map { TimezonePickerItem(id: $0, displayName: displayName(for: $0), identifier: $0, isAlias: false) }
+
+        // Add alias entries
+        for (alias, identifier) in CITY_ALIASES {
+            // Skip if the alias name already matches an existing system entry
+            if !items.contains(where: { $0.displayName == alias }) {
+                items.append(TimezonePickerItem(id: "alias:\(alias)", displayName: alias, identifier: identifier, isAlias: true))
+            }
+        }
+
+        items.sort { $0.displayName.localizedCompare($1.displayName) == .orderedAscending }
+
+        if timezoneSearchText.isEmpty { return items }
         let query = timezoneSearchText
-        return all.filter { id in
-            let searchable = id.replacingOccurrences(of: "_", with: " ").replacingOccurrences(of: "/", with: " ")
+        return items.filter { item in
+            if item.displayName.localizedCaseInsensitiveContains(query) { return true }
+            let searchable = item.identifier.replacingOccurrences(of: "_", with: " ").replacingOccurrences(of: "/", with: " ")
             if searchable.localizedCaseInsensitiveContains(query) { return true }
-            if let tz = TimeZone(identifier: id) {
+            if let tz = TimeZone(identifier: item.identifier) {
                 if formatGMTOffset(tz).localizedCaseInsensitiveContains(query) { return true }
             }
             return false
@@ -630,25 +713,25 @@ struct ContentView: View {
                     // Timezone list
                     ScrollView {
                         LazyVStack(spacing: 0) {
-                            ForEach(filteredSystemTimezones, id: \.self) { identifier in
-                                let alreadyAdded = timezones.contains { $0.zone == identifier }
+                            ForEach(pickerItems) { item in
+                                let alreadyAdded = timezones.contains { $0.zone == item.identifier }
                                 Button {
                                     if !alreadyAdded {
-                                        addTimezone(identifier)
+                                        addTimezone(item.identifier, name: item.displayName)
                                         showingTimezonePicker = false
                                     }
                                 } label: {
                                     HStack {
                                         VStack(alignment: .leading, spacing: 2) {
-                                            Text(displayName(for: identifier))
+                                            Text(item.displayName)
                                                 .font(.system(size: 14, weight: .medium))
                                                 .foregroundColor(alreadyAdded ? Color(white: 0.3) : Color(white: 0.85))
                                             HStack(spacing: 6) {
-                                                let region = regionPath(for: identifier)
+                                                let region = item.region
                                                 if !region.isEmpty {
                                                     Text(region)
                                                 }
-                                                if let tz = TimeZone(identifier: identifier) {
+                                                if let tz = TimeZone(identifier: item.identifier) {
                                                     Text(formatGMTOffset(tz))
                                                 }
                                             }
@@ -697,11 +780,11 @@ struct ContentView: View {
         }
     }
 
-    private func addTimezone(_ identifier: String) {
+    private func addTimezone(_ identifier: String, name: String? = nil) {
         guard !timezones.contains(where: { $0.zone == identifier }) else { return }
         let nextColor = COLORS[timezones.count % COLORS.count]
-        let name = displayName(for: identifier)
-        timezones.append(TimezoneEntry(name: name, zone: identifier, color: nextColor))
+        let displayLabel = name ?? displayName(for: identifier)
+        timezones.append(TimezoneEntry(name: displayLabel, zone: identifier, color: nextColor))
     }
 
     private func removeTimezone(at offsets: IndexSet) {
