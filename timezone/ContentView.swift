@@ -45,37 +45,28 @@ let COLORS: [Color] = [
     Color(red: 0.976, green: 0.451, blue: 0.086), // orange-500
 ]
 
-struct CommonTimezone: Identifiable {
-    let id = UUID()
-    let name: String
-    let zone: String
+func displayName(for identifier: String) -> String {
+    let component = identifier.split(separator: "/").last ?? Substring(identifier)
+    return component.replacingOccurrences(of: "_", with: " ")
 }
 
-let COMMON_TIMEZONES: [CommonTimezone] = [
-    CommonTimezone(name: "New York", zone: "America/New_York"),
-    CommonTimezone(name: "Los Angeles", zone: "America/Los_Angeles"),
-    CommonTimezone(name: "Chicago", zone: "America/Chicago"),
-    CommonTimezone(name: "Toronto", zone: "America/Toronto"),
-    CommonTimezone(name: "London", zone: "Europe/London"),
-    CommonTimezone(name: "Paris", zone: "Europe/Paris"),
-    CommonTimezone(name: "Berlin", zone: "Europe/Berlin"),
-    CommonTimezone(name: "Tokyo", zone: "Asia/Tokyo"),
-    CommonTimezone(name: "Beijing", zone: "Asia/Shanghai"),
-    CommonTimezone(name: "Hong Kong", zone: "Asia/Hong_Kong"),
-    CommonTimezone(name: "Singapore", zone: "Asia/Singapore"),
-    CommonTimezone(name: "Dubai", zone: "Asia/Dubai"),
-    CommonTimezone(name: "New Delhi", zone: "Asia/Kolkata"),
-    CommonTimezone(name: "Sydney", zone: "Australia/Sydney"),
-    CommonTimezone(name: "Melbourne", zone: "Australia/Melbourne"),
-    CommonTimezone(name: "Auckland", zone: "Pacific/Auckland"),
-    CommonTimezone(name: "Moscow", zone: "Europe/Moscow"),
-    CommonTimezone(name: "Istanbul", zone: "Europe/Istanbul"),
-    CommonTimezone(name: "São Paulo", zone: "America/Sao_Paulo"),
-    CommonTimezone(name: "Mexico City", zone: "America/Mexico_City"),
-    CommonTimezone(name: "Seoul", zone: "Asia/Seoul"),
-    CommonTimezone(name: "Bangkok", zone: "Asia/Bangkok"),
-    CommonTimezone(name: "Jakarta", zone: "Asia/Jakarta"),
-]
+func regionPath(for identifier: String) -> String {
+    let parts = identifier.split(separator: "/")
+    if parts.count > 1 {
+        return parts.dropLast().joined(separator: " / ").replacingOccurrences(of: "_", with: " ")
+    }
+    return ""
+}
+
+func formatGMTOffset(_ tz: TimeZone) -> String {
+    let seconds = tz.secondsFromGMT()
+    let hours = seconds / 3600
+    let minutes = abs(seconds % 3600) / 60
+    if minutes == 0 {
+        return String(format: "GMT%+d", hours)
+    }
+    return String(format: "GMT%+d:%02d", hours, minutes)
+}
 
 // MARK: - Timezone Helpers
 
@@ -421,7 +412,8 @@ struct ContentView: View {
     @State private var dialOffset: CGFloat = 0
     @State private var timeOffset: Double = 0
     @State private var stars: [Star] = []
-    @State private var selectedTimezone: String = ""
+    @State private var showingTimezonePicker = false
+    @State private var timezoneSearchText = ""
 
     var body: some View {
         GeometryReader { geo in
@@ -456,11 +448,8 @@ struct ContentView: View {
                 .padding(.top, 4)
 
             // Timezone list - scrollable middle section
-            ScrollView {
-                timezoneList
-                    .padding(.top, 12)
-            }
-            .frame(maxHeight: .infinity)
+            timezoneList
+                .frame(maxHeight: .infinity)
 
             // Dial pinned to bottom
             DialView(dialOffset: $dialOffset, timeOffset: $timeOffset)
@@ -527,25 +516,39 @@ struct ContentView: View {
 
     // MARK: - Timezone List
 
-    private var timezoneList: some View {
-        VStack(spacing: 12) {
-            ForEach(timezones) { tz in
-                if let data = timezoneData[tz.zone] {
-                    TimezoneRow(entry: tz, data: data)
-                }
+    private var filteredSystemTimezones: [String] {
+        let all = TimeZone.knownTimeZoneIdentifiers.filter { $0.contains("/") }
+        if timezoneSearchText.isEmpty { return all }
+        let query = timezoneSearchText
+        return all.filter { id in
+            let searchable = id.replacingOccurrences(of: "_", with: " ").replacingOccurrences(of: "/", with: " ")
+            if searchable.localizedCaseInsensitiveContains(query) { return true }
+            if let tz = TimeZone(identifier: id) {
+                if formatGMTOffset(tz).localizedCaseInsensitiveContains(query) { return true }
             }
+            return false
+        }
+    }
 
-            // Add timezone picker
-            Menu {
-                ForEach(COMMON_TIMEZONES) { tz in
-                    let alreadyAdded = timezones.contains { $0.zone == tz.zone }
-                    Button {
-                        addTimezone(tz)
-                    } label: {
-                        Label(tz.name, systemImage: alreadyAdded ? "checkmark" : "plus")
+    private var timezoneList: some View {
+        VStack(spacing: 8) {
+            List {
+                ForEach(timezones) { tz in
+                    if let data = timezoneData[tz.zone] {
+                        TimezoneRow(entry: tz, data: data)
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                            .listRowInsets(EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 12))
                     }
-                    .disabled(alreadyAdded)
                 }
+                .onDelete(perform: removeTimezone)
+            }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+
+            // Add timezone button
+            Button {
+                showingTimezonePicker = true
             } label: {
                 Text("+ Add Timezone")
                     .font(.system(size: 14))
@@ -558,6 +561,125 @@ struct ContentView: View {
                         RoundedRectangle(cornerRadius: 8)
                             .stroke(Color.white.opacity(0.1), lineWidth: 1)
                     )
+            }
+            .padding(.bottom, 8)
+        }
+        .sheet(isPresented: $showingTimezonePicker) {
+            ZStack {
+                Color(red: 0.035, green: 0.035, blue: 0.043)
+                    .ignoresSafeArea()
+
+                VStack(spacing: 0) {
+                    // Header
+                    HStack {
+                        Button {
+                            showingTimezonePicker = false
+                        } label: {
+                            Text("Cancel")
+                                .font(.system(size: 14))
+                                .foregroundColor(Color(white: 0.5))
+                        }
+                        Spacer()
+                        Text("Add Timezone")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(Color(white: 0.93))
+                        Spacer()
+                        // Balance the header
+                        Text("Cancel").font(.system(size: 14)).hidden()
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 18)
+                    .padding(.bottom, 12)
+
+                    // Search field
+                    HStack(spacing: 8) {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(Color(white: 0.35))
+                            .font(.system(size: 14))
+                        TextField("", text: $timezoneSearchText, prompt: Text("Search city").foregroundColor(Color(white: 0.35)))
+                            .foregroundColor(Color(white: 0.93))
+                            .font(.system(size: 14))
+                            .autocorrectionDisabled()
+                            .textInputAutocapitalization(.never)
+                        if !timezoneSearchText.isEmpty {
+                            Button {
+                                timezoneSearchText = ""
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(Color(white: 0.35))
+                                    .font(.system(size: 14))
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(Color(white: 0.08))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.white.opacity(0.06), lineWidth: 1)
+                    )
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 12)
+
+                    // Divider
+                    Rectangle()
+                        .fill(Color.white.opacity(0.06))
+                        .frame(height: 1)
+
+                    // Timezone list
+                    ScrollView {
+                        LazyVStack(spacing: 0) {
+                            ForEach(filteredSystemTimezones, id: \.self) { identifier in
+                                let alreadyAdded = timezones.contains { $0.zone == identifier }
+                                Button {
+                                    if !alreadyAdded {
+                                        addTimezone(identifier)
+                                        showingTimezonePicker = false
+                                    }
+                                } label: {
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(displayName(for: identifier))
+                                                .font(.system(size: 14, weight: .medium))
+                                                .foregroundColor(alreadyAdded ? Color(white: 0.3) : Color(white: 0.85))
+                                            HStack(spacing: 6) {
+                                                let region = regionPath(for: identifier)
+                                                if !region.isEmpty {
+                                                    Text(region)
+                                                }
+                                                if let tz = TimeZone(identifier: identifier) {
+                                                    Text(formatGMTOffset(tz))
+                                                }
+                                            }
+                                            .font(.system(size: 11))
+                                            .foregroundColor(alreadyAdded ? Color(white: 0.2) : Color(white: 0.4))
+                                        }
+                                        Spacer()
+                                        if alreadyAdded {
+                                            Image(systemName: "checkmark")
+                                                .font(.system(size: 12, weight: .semibold))
+                                                .foregroundColor(Color(white: 0.3))
+                                        }
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 12)
+                                    .contentShape(Rectangle())
+                                }
+                                .disabled(alreadyAdded)
+
+                                Rectangle()
+                                    .fill(Color.white.opacity(0.04))
+                                    .frame(height: 1)
+                                    .padding(.leading, 16)
+                            }
+                        }
+                    }
+                }
+            }
+            .presentationBackground(Color(red: 0.035, green: 0.035, blue: 0.043))
+            .onDisappear {
+                timezoneSearchText = ""
             }
         }
     }
@@ -575,10 +697,16 @@ struct ContentView: View {
         }
     }
 
-    private func addTimezone(_ tz: CommonTimezone) {
-        guard !timezones.contains(where: { $0.zone == tz.zone }) else { return }
+    private func addTimezone(_ identifier: String) {
+        guard !timezones.contains(where: { $0.zone == identifier }) else { return }
         let nextColor = COLORS[timezones.count % COLORS.count]
-        timezones.append(TimezoneEntry(name: tz.name, zone: tz.zone, color: nextColor))
+        let name = displayName(for: identifier)
+        timezones.append(TimezoneEntry(name: name, zone: identifier, color: nextColor))
+    }
+
+    private func removeTimezone(at offsets: IndexSet) {
+        guard timezones.count > 1 else { return }
+        timezones.remove(atOffsets: offsets)
     }
 
     private func updateTimezoneData() {
