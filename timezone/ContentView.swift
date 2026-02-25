@@ -517,7 +517,7 @@ struct ContentView: View {
             // Chart pinned to top
             chartView
                 .padding(.horizontal, 8)
-                .padding(.vertical, 4)
+                .padding(.vertical, 8)
 
             // Timezone list - scrollable middle section
             timezoneList
@@ -526,7 +526,7 @@ struct ContentView: View {
             // Dial pinned to bottom
             DialView(dialOffset: $dialOffset, timeOffset: $timeOffset)
                 .padding(.horizontal, 12)
-                .padding(.bottom, 8)
+                .padding(.vertical, 8)
         }
     }
 
@@ -618,7 +618,7 @@ struct ContentView: View {
     }
 
     private var timezoneList: some View {
-        VStack(spacing: 8) {
+        ZStack(alignment: .bottom) {
             List {
                 ForEach(timezones) { tz in
                     if let data = timezoneData[tz.zone] {
@@ -629,11 +629,17 @@ struct ContentView: View {
                     }
                 }
                 .onDelete(perform: removeTimezone)
+
+                // Spacer row so last item isn't hidden behind the floating button
+                Color.clear
+                    .frame(height: 48)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
 
-            // Add timezone button
+            // Floating add timezone button
             Button {
                 showingTimezonePicker = true
             } label: {
@@ -641,7 +647,7 @@ struct ContentView: View {
                     .font(.system(size: 14))
             }
             .buttonStyle(.glass)
-            .padding(.bottom, 8)
+            .padding(.bottom, 12)
         }
         .sheet(isPresented: $showingTimezonePicker) {
             ZStack {
