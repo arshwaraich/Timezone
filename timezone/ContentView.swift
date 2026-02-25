@@ -86,6 +86,8 @@ func getAdjustedDate(timeOffset: Double) -> Date {
 func getTimeString(zone: String, date: Date) -> String {
     let formatter = DateFormatter()
     formatter.timeZone = TimeZone(identifier: zone)
+    formatter.amSymbol = "AM"
+    formatter.pmSymbol = "PM"
     formatter.dateFormat = "h:mm a"
     return formatter.string(from: date)
 }
@@ -222,10 +224,14 @@ struct SunPathChart: View {
     var centerY: CGFloat { height / 2 }
     var amplitude: CGFloat { height / 2.5 }
 
+    private let hPadding: CGFloat = 16
+
     var body: some View {
         Canvas { context, size in
             let w = size.width
             let h = size.height
+            let drawLeft = hPadding
+            let drawWidth = w - hPadding * 2
             let cY = h / 2
             let amp = h / 2.5
 
@@ -244,7 +250,7 @@ struct SunPathChart: View {
             let wavePath = Path { p in
                 for i in 0...200 {
                     let frac = CGFloat(i) / 200
-                    let x = frac * w
+                    let x = drawLeft + frac * drawWidth
                     let angle = frac * 2 * .pi - .pi / 2
                     let y = cY - sin(angle) * amp
                     if i == 0 {
@@ -266,7 +272,7 @@ struct SunPathChart: View {
                 ("12h", 0.5), ("15h", 0.625), ("18h", 0.75), ("21h", 0.875), ("24h", 1)
             ]
             for (label, pos) in timeLabels {
-                let x = pos * w
+                let x = drawLeft + pos * drawWidth
                 context.draw(
                     Text(label).font(.system(size: 11)).foregroundColor(.white),
                     at: CGPoint(x: x, y: h - 10),
@@ -277,7 +283,7 @@ struct SunPathChart: View {
             // Timezone markers
             for tz in timezones {
                 guard let data = timezoneData[tz.zone] else { continue }
-                let cx = data.positionX / width * w
+                let cx = drawLeft + (data.positionX / width) * drawWidth
                 let cy = data.positionY / height * h
 
                 // Circle
@@ -443,22 +449,24 @@ struct ContentView: View {
     // MARK: - Compact (iPhone) Layout
 
     private var compactLayout: some View {
-        VStack(spacing: 12) {
-            Spacer()
-
-            // Chart
+        VStack(spacing: 0) {
+            // Chart pinned to top
             chartView
+                .padding(.horizontal, 8)
+                .padding(.top, 4)
 
-            // Time list
-            timezoneList
+            // Timezone list - scrollable middle section
+            ScrollView {
+                timezoneList
+                    .padding(.top, 12)
+            }
+            .frame(maxHeight: .infinity)
 
-            // Dial
+            // Dial pinned to bottom
             DialView(dialOffset: $dialOffset, timeOffset: $timeOffset)
                 .padding(.horizontal, 12)
-
-            Spacer().frame(height: 8)
+                .padding(.bottom, 8)
         }
-        .padding(.horizontal, 8)
     }
 
     // MARK: - Regular (iPad) Layout
