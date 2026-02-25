@@ -9,11 +9,18 @@ import SwiftUI
 
 // MARK: - Models
 
+struct SavedTimezone: Codable {
+    let name: String
+    let zone: String
+    let colorIndex: Int
+}
+
 struct TimezoneEntry: Identifiable, Equatable {
     let id = UUID()
     let name: String
     let zone: String
     let color: Color
+    let colorIndex: Int
 }
 
 struct TimezoneData {
@@ -472,10 +479,7 @@ struct TimezoneRow: View {
 // MARK: - Main View
 
 struct ContentView: View {
-    @State private var timezones: [TimezoneEntry] = [
-        TimezoneEntry(name: "Toronto", zone: "America/Toronto", color: COLORS[0]),
-        TimezoneEntry(name: "New Delhi", zone: "Asia/Kolkata", color: COLORS[1]),
-    ]
+    @State private var timezones: [TimezoneEntry] = ContentView.loadTimezones()
     @State private var timezoneData: [String: TimezoneData] = [:]
     @State private var dialOffset: CGFloat = 0
     @State private var timeOffset: Double = 0
@@ -513,7 +517,7 @@ struct ContentView: View {
             // Chart pinned to top
             chartView
                 .padding(.horizontal, 8)
-                .padding(.top, 4)
+                .padding(.vertical, 4)
 
             // Timezone list - scrollable middle section
             timezoneList
@@ -782,14 +786,38 @@ struct ContentView: View {
 
     private func addTimezone(_ identifier: String, name: String? = nil) {
         guard !timezones.contains(where: { $0.zone == identifier }) else { return }
-        let nextColor = COLORS[timezones.count % COLORS.count]
+        let colorIndex = timezones.count % COLORS.count
         let displayLabel = name ?? displayName(for: identifier)
-        timezones.append(TimezoneEntry(name: displayLabel, zone: identifier, color: nextColor))
+        timezones.append(TimezoneEntry(name: displayLabel, zone: identifier, color: COLORS[colorIndex], colorIndex: colorIndex))
+        saveTimezones()
     }
 
     private func removeTimezone(at offsets: IndexSet) {
         guard timezones.count > 1 else { return }
         timezones.remove(atOffsets: offsets)
+        saveTimezones()
+    }
+
+    private func saveTimezones() {
+        let saved = timezones.map { SavedTimezone(name: $0.name, zone: $0.zone, colorIndex: $0.colorIndex) }
+        if let data = try? JSONEncoder().encode(saved) {
+            UserDefaults.standard.set(data, forKey: "savedTimezones")
+        }
+    }
+
+    static func loadTimezones() -> [TimezoneEntry] {
+        guard let data = UserDefaults.standard.data(forKey: "savedTimezones"),
+              let saved = try? JSONDecoder().decode([SavedTimezone].self, from: data),
+              !saved.isEmpty else {
+            return [
+                TimezoneEntry(name: "Toronto", zone: "America/Toronto", color: COLORS[0], colorIndex: 0),
+                TimezoneEntry(name: "New Delhi", zone: "Asia/Kolkata", color: COLORS[1], colorIndex: 1),
+            ]
+        }
+        return saved.map { s in
+            let idx = s.colorIndex % COLORS.count
+            return TimezoneEntry(name: s.name, zone: s.zone, color: COLORS[idx], colorIndex: idx)
+        }
     }
 
     private func updateTimezoneData() {
