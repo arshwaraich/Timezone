@@ -332,20 +332,6 @@ struct SunPathChart: View {
                 style: StrokeStyle(lineWidth: 3)
             )
 
-            // Time labels
-            let timeLabels: [(String, CGFloat)] = [
-                ("0h", 0), ("3h", 0.125), ("6h", 0.25), ("9h", 0.375),
-                ("12h", 0.5), ("15h", 0.625), ("18h", 0.75), ("21h", 0.875), ("24h", 1)
-            ]
-            for (label, pos) in timeLabels {
-                let x = drawLeft + pos * drawWidth
-                context.draw(
-                    Text(label).font(.system(size: 11)).foregroundColor(.white),
-                    at: CGPoint(x: x, y: h - 10),
-                    anchor: .center
-                )
-            }
-
             // Timezone markers
             for tz in timezones {
                 guard let data = timezoneData[tz.zone] else { continue }
@@ -577,10 +563,27 @@ struct ContentView: View {
                 )
             }
             .clipShape(RoundedRectangle(cornerRadius: 16))
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(Color.white.opacity(0.08), lineWidth: 1)
-            )
+            .overlay(alignment: .bottom) {
+                HStack {
+                    ForEach(["0h", "3h", "6h", "9h", "12h", "15h", "18h", "21h", "24h"], id: \.self) { label in
+                        Text(label)
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundStyle(.white)
+                        if label != "24h" { Spacer() }
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 6)
+                .glassEffect(
+                    .regular,
+                    in: UnevenRoundedRectangle(
+                        topLeadingRadius: 0,
+                        bottomLeadingRadius: 16,
+                        bottomTrailingRadius: 16,
+                        topTrailingRadius: 0
+                    )
+                )
+            }
             .shadow(color: .black.opacity(0.4), radius: 20)
         }
         .aspectRatio(4.0 / 3.0, contentMode: .fit)
