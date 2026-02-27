@@ -479,7 +479,6 @@ struct ContentView: View {
     @State private var timeOffset: Double = 0
     @State private var stars: [Star] = []
     @State private var showingTimezonePicker = false
-    @State private var timezoneSearchText = ""
 
     var body: some View {
         GeometryReader { geo in
@@ -599,35 +598,6 @@ struct ContentView: View {
 
     // MARK: - Timezone List
 
-    private var pickerItems: [TimezonePickerItem] {
-        // Build items from system timezones (skip bare abbreviations like "GMT", "EST")
-        var items: [TimezonePickerItem] = TimeZone.knownTimeZoneIdentifiers
-            .filter { $0.contains("/") }
-            .map { TimezonePickerItem(id: $0, displayName: displayName(for: $0), identifier: $0, isAlias: false) }
-
-        // Add alias entries
-        for (alias, identifier) in CITY_ALIASES {
-            // Skip if the alias name already matches an existing system entry
-            if !items.contains(where: { $0.displayName == alias }) {
-                items.append(TimezonePickerItem(id: "alias:\(alias)", displayName: alias, identifier: identifier, isAlias: true))
-            }
-        }
-
-        items.sort { $0.displayName.localizedCompare($1.displayName) == .orderedAscending }
-
-        if timezoneSearchText.isEmpty { return items }
-        let query = timezoneSearchText
-        return items.filter { item in
-            if item.displayName.localizedCaseInsensitiveContains(query) { return true }
-            let searchable = item.identifier.replacingOccurrences(of: "_", with: " ").replacingOccurrences(of: "/", with: " ")
-            if searchable.localizedCaseInsensitiveContains(query) { return true }
-            if let tz = TimeZone(identifier: item.identifier) {
-                if formatGMTOffset(tz).localizedCaseInsensitiveContains(query) { return true }
-            }
-            return false
-        }
-    }
-
     private var timezoneList: some View {
         ZStack(alignment: .bottom) {
             List {
@@ -661,121 +631,8 @@ struct ContentView: View {
             .padding(.bottom, 12)
         }
         .sheet(isPresented: $showingTimezonePicker) {
-            ZStack {
-                Color(red: 0.035, green: 0.035, blue: 0.043)
-                    .ignoresSafeArea()
-
-                VStack(spacing: 0) {
-                    // Header
-                    HStack {
-                        Button {
-                            showingTimezonePicker = false
-                        } label: {
-                            Text("Cancel")
-                                .font(.system(size: 14))
-                                .foregroundColor(Color(white: 0.5))
-                        }
-                        Spacer()
-                        Text("Add Timezone")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(Color(white: 0.93))
-                        Spacer()
-                        // Balance the header
-                        Text("Cancel").font(.system(size: 14)).hidden()
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.top, 18)
-                    .padding(.bottom, 12)
-
-                    // Search field
-                    HStack(spacing: 8) {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(Color(white: 0.35))
-                            .font(.system(size: 14))
-                        TextField("", text: $timezoneSearchText, prompt: Text("Search city").foregroundColor(Color(white: 0.35)))
-                            .foregroundColor(Color(white: 0.93))
-                            .font(.system(size: 14))
-                            .autocorrectionDisabled()
-                            .textInputAutocapitalization(.never)
-                        if !timezoneSearchText.isEmpty {
-                            Button {
-                                timezoneSearchText = ""
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundColor(Color(white: 0.35))
-                                    .font(.system(size: 14))
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 10)
-                    .background(Color(white: 0.08))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.white.opacity(0.06), lineWidth: 1)
-                    )
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 12)
-
-                    // Divider
-                    Rectangle()
-                        .fill(Color.white.opacity(0.06))
-                        .frame(height: 1)
-
-                    // Timezone list
-                    ScrollView {
-                        LazyVStack(spacing: 0) {
-                            ForEach(pickerItems) { item in
-                                let alreadyAdded = timezones.contains { $0.zone == item.identifier }
-                                Button {
-                                    if !alreadyAdded {
-                                        addTimezone(item.identifier, name: item.displayName)
-                                        showingTimezonePicker = false
-                                    }
-                                } label: {
-                                    HStack {
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(item.displayName)
-                                                .font(.system(size: 14, weight: .medium))
-                                                .foregroundColor(alreadyAdded ? Color(white: 0.3) : Color(white: 0.85))
-                                            HStack(spacing: 6) {
-                                                let region = item.region
-                                                if !region.isEmpty {
-                                                    Text(region)
-                                                }
-                                                if let tz = TimeZone(identifier: item.identifier) {
-                                                    Text(formatGMTOffset(tz))
-                                                }
-                                            }
-                                            .font(.system(size: 11))
-                                            .foregroundColor(alreadyAdded ? Color(white: 0.2) : Color(white: 0.4))
-                                        }
-                                        Spacer()
-                                        if alreadyAdded {
-                                            Image(systemName: "checkmark")
-                                                .font(.system(size: 12, weight: .semibold))
-                                                .foregroundColor(Color(white: 0.3))
-                                        }
-                                    }
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 12)
-                                    .contentShape(Rectangle())
-                                }
-                                .disabled(alreadyAdded)
-
-                                Rectangle()
-                                    .fill(Color.white.opacity(0.04))
-                                    .frame(height: 1)
-                                    .padding(.leading, 16)
-                            }
-                        }
-                    }
-                }
-            }
-            .presentationBackground(Color(red: 0.035, green: 0.035, blue: 0.043))
-            .onDisappear {
-                timezoneSearchText = ""
+            TimezonePickerView(existingTimezones: timezones) { identifier, name in
+                addTimezone(identifier, name: name)
             }
         }
     }
