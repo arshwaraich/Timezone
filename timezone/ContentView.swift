@@ -364,6 +364,10 @@ struct DialView: View {
     @Binding var timeOffset: Double
     @GestureState private var dragOffset: CGFloat = 0
     private let pixelsPerHour: CGFloat = 20
+    private let markSpacing: CGFloat = 4
+    @State private var lastMajorMarkIndex: Int = 0
+    private let lightImpact = UIImpactFeedbackGenerator(style: .light)
+    private let majorMarkSpacing: CGFloat = 40 // markSpacing * 10
 
     var body: some View {
         GeometryReader { geo in
@@ -414,12 +418,7 @@ struct DialView: View {
             }
         }
         .frame(height: 70)
-        .background(Color(white: 0.06).opacity(0.5))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.white.opacity(0.08), lineWidth: 1)
-        )
+        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 16))
         .gesture(
             DragGesture()
                 .updating($dragOffset) { value, state, _ in
@@ -433,6 +432,15 @@ struct DialView: View {
         .onChange(of: dragOffset) {
             let currentTotal = dialOffset + dragOffset
             timeOffset = Double(-(currentTotal / pixelsPerHour))
+
+            let majorMark = Int(round(currentTotal / majorMarkSpacing))
+            if majorMark != lastMajorMarkIndex {
+                lightImpact.impactOccurred()
+                lastMajorMarkIndex = majorMark
+            }
+        }
+        .onAppear {
+            lightImpact.prepare()
         }
     }
 }
