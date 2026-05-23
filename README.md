@@ -4,6 +4,16 @@ An iOS app for visualising time across multiple timezones by sunrise and sunset.
 
 Instead of just listing clocks, Timezone draws a 24-hour sun arc and places each city as a colored dot along its day-night cycle — so you can see at a glance who is in daylight, who is asleep, and who is somewhere in between.
 
+**Download:** [Sun Timezone on the App Store](https://apps.apple.com/us/app/sun-timezone/id6760567372)
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/arshwaraich/timezone-support/main/public/1.png" alt="Visualise time across timezones" width="170" />
+  <img src="https://raw.githubusercontent.com/arshwaraich/timezone-support/main/public/2.png" alt="Day and night visuals" width="170" />
+  <img src="https://raw.githubusercontent.com/arshwaraich/timezone-support/main/public/3.png" alt="Add 100+ cities" width="170" />
+  <img src="https://raw.githubusercontent.com/arshwaraich/timezone-support/main/public/4.png" alt="Swipe to move time" width="170" />
+  <img src="https://raw.githubusercontent.com/arshwaraich/timezone-support/main/public/5.png" alt="Search multiple cities" width="170" />
+</p>
+
 ## Features
 
 - **Sun path chart** — a sine-wave arc shows day and night; each timezone is a colored dot positioned by local hour.
@@ -49,7 +59,7 @@ Build and run on an iPhone or iPad simulator (or device).
 
 ## Support
 
-Support site, FAQ, and privacy policy live in a companion repo: [arshwaraich/timezone-support](https://github.com/arshwaraich/timezone-support).
+Support site, FAQ, and privacy policy: [timezone.arshwaraich.com](https://timezone.arshwaraich.com)
 
 For questions: [work@arshwaraich.com](mailto:work@arshwaraich.com)
 
