@@ -7,11 +7,11 @@ Instead of just listing clocks, Timezone draws a 24-hour sun arc and places each
 **Download:** [Sun Timezone on the App Store](https://apps.apple.com/us/app/sun-timezone/id6760567372)
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/arshwaraich/timezone-support/main/public/1.png" alt="Visualise time across timezones" width="170" />
-  <img src="https://raw.githubusercontent.com/arshwaraich/timezone-support/main/public/2.png" alt="Day and night visuals" width="170" />
-  <img src="https://raw.githubusercontent.com/arshwaraich/timezone-support/main/public/3.png" alt="Add 100+ cities" width="170" />
-  <img src="https://raw.githubusercontent.com/arshwaraich/timezone-support/main/public/4.png" alt="Swipe to move time" width="170" />
-  <img src="https://raw.githubusercontent.com/arshwaraich/timezone-support/main/public/5.png" alt="Search multiple cities" width="170" />
+  <img src="assets/1.png" alt="Visualise time across timezones" width="170" />
+  <img src="assets/2.png" alt="Day and night visuals" width="170" />
+  <img src="assets/3.png" alt="Add 100+ cities" width="170" />
+  <img src="assets/4.png" alt="Swipe to move time" width="170" />
+  <img src="assets/5.png" alt="Search multiple cities" width="170" />
 </p>
 
 ## Features
