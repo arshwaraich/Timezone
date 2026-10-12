@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		98745C922F51144000E98199 /* TimezoneIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 98745C912F51144000E98199 /* TimezoneIcon.icon */; };
+		C1A000000000000000000002 /* timezoneWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C1A000000000000000000001 /* timezoneWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -25,14 +26,46 @@
 			remoteGlobalIDString = 98A47A992F4D287800FA9B25;
 			remoteInfo = timezone;
 		};
+		C1A00000000000000000000B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 98A47A922F4D287800FA9B25 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C1A00000000000000000000A;
+			remoteInfo = timezoneWidgets;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		C1A000000000000000000009 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				C1A000000000000000000002 /* timezoneWidgets.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		98745C912F51144000E98199 /* TimezoneIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = TimezoneIcon.icon; sourceTree = "<group>"; };
 		98A47A9A2F4D287800FA9B25 /* timezone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = timezone.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		98A47AA72F4D287A00FA9B25 /* timezoneTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = timezoneTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		98A47AB12F4D287A00FA9B25 /* timezoneUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = timezoneUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C1A000000000000000000001 /* timezoneWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = timezoneWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		C1A000000000000000000005 /* Exceptions for "timezoneWidgets" folder in "timezoneWidgets" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = C1A00000000000000000000A /* timezoneWidgets */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		98A47A9C2F4D287800FA9B25 /* timezone */ = {
@@ -48,6 +81,19 @@
 		98A47AB42F4D287A00FA9B25 /* timezoneUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = timezoneUITests;
+			sourceTree = "<group>";
+		};
+		C1A000000000000000000003 /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		C1A000000000000000000004 /* timezoneWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C1A000000000000000000005 /* Exceptions for "timezoneWidgets" folder in "timezoneWidgets" target */,
+			);
+			path = timezoneWidgets;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -74,6 +120,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C1A000000000000000000007 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -81,6 +134,8 @@
 			isa = PBXGroup;
 			children = (
 				98A47A9C2F4D287800FA9B25 /* timezone */,
+				C1A000000000000000000003 /* Shared */,
+				C1A000000000000000000004 /* timezoneWidgets */,
 				98A47AAA2F4D287A00FA9B25 /* timezoneTests */,
 				98A47AB42F4D287A00FA9B25 /* timezoneUITests */,
 				98A47A9B2F4D287800FA9B25 /* Products */,
@@ -94,6 +149,7 @@
 				98A47A9A2F4D287800FA9B25 /* timezone.app */,
 				98A47AA72F4D287A00FA9B25 /* timezoneTests.xctest */,
 				98A47AB12F4D287A00FA9B25 /* timezoneUITests.xctest */,
+				C1A000000000000000000001 /* timezoneWidgets.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -108,13 +164,16 @@
 				98A47A962F4D287800FA9B25 /* Sources */,
 				98A47A972F4D287800FA9B25 /* Frameworks */,
 				98A47A982F4D287800FA9B25 /* Resources */,
+				C1A000000000000000000009 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				C1A00000000000000000000C /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				98A47A9C2F4D287800FA9B25 /* timezone */,
+				C1A000000000000000000003 /* Shared */,
 			);
 			name = timezone;
 			packageProductDependencies = (
@@ -169,6 +228,29 @@
 			productReference = 98A47AB12F4D287A00FA9B25 /* timezoneUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		C1A00000000000000000000A /* timezoneWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C1A00000000000000000000F /* Build configuration list for PBXNativeTarget "timezoneWidgets" */;
+			buildPhases = (
+				C1A000000000000000000006 /* Sources */,
+				C1A000000000000000000007 /* Frameworks */,
+				C1A000000000000000000008 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				C1A000000000000000000003 /* Shared */,
+				C1A000000000000000000004 /* timezoneWidgets */,
+			);
+			name = timezoneWidgets;
+			packageProductDependencies = (
+			);
+			productName = timezoneWidgets;
+			productReference = C1A000000000000000000001 /* timezoneWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -190,6 +272,9 @@
 						CreatedOnToolsVersion = 26.2;
 						TestTargetID = 98A47A992F4D287800FA9B25;
 					};
+					C1A00000000000000000000A = {
+						CreatedOnToolsVersion = 27.0;
+					};
 				};
 			};
 			buildConfigurationList = 98A47A952F4D287800FA9B25 /* Build configuration list for PBXProject "timezone" */;
@@ -209,6 +294,7 @@
 				98A47A992F4D287800FA9B25 /* timezone */,
 				98A47AA62F4D287A00FA9B25 /* timezoneTests */,
 				98A47AB02F4D287A00FA9B25 /* timezoneUITests */,
+				C1A00000000000000000000A /* timezoneWidgets */,
 			);
 		};
 /* End PBXProject section */
@@ -230,6 +316,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		98A47AAF2F4D287A00FA9B25 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1A000000000000000000008 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -260,6 +353,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C1A000000000000000000006 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -272,6 +372,11 @@
 			isa = PBXTargetDependency;
 			target = 98A47A992F4D287800FA9B25 /* timezone */;
 			targetProxy = 98A47AB22F4D287A00FA9B25 /* PBXContainerItemProxy */;
+		};
+		C1A00000000000000000000C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C1A00000000000000000000A /* timezoneWidgets */;
+			targetProxy = C1A00000000000000000000B /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -403,9 +508,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = TimezoneIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = timezone/timezone.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6U9WK83U3W;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Sun Timezone";
@@ -420,11 +528,17 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.arshwaraich.timezone;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -443,9 +557,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = TimezoneIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = timezone/timezone.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6U9WK83U3W;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Sun Timezone";
@@ -460,11 +577,17 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.arshwaraich.timezone;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -561,6 +684,86 @@
 			};
 			name = Release;
 		};
+		C1A00000000000000000000D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = timezoneWidgets/timezoneWidgets.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6U9WK83U3W;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = timezoneWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Sun Timezone";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.arshwaraich.timezone.widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		C1A00000000000000000000E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = timezoneWidgets/timezoneWidgets.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6U9WK83U3W;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = timezoneWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Sun Timezone";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.arshwaraich.timezone.widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -596,6 +799,15 @@
 			buildConfigurations = (
 				98A47AC22F4D287A00FA9B25 /* Debug */,
 				98A47AC32F4D287A00FA9B25 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C1A00000000000000000000F /* Build configuration list for PBXNativeTarget "timezoneWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C1A00000000000000000000D /* Debug */,
+				C1A00000000000000000000E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

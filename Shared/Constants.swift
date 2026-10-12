@@ -39,6 +39,35 @@ func formatGMTOffset(_ tz: TimeZone) -> String {
     return String(format: "GMT%+d:%02d", hours, minutes)
 }
 
+// Every city the picker offers: IANA zones plus aliases, sorted by name
+func allPickerItems() -> [TimezonePickerItem] {
+    var items: [TimezonePickerItem] = TimeZone.knownTimeZoneIdentifiers
+        .filter { $0.contains("/") }
+        .map { TimezonePickerItem(id: $0, displayName: displayName(for: $0), identifier: $0, isAlias: false) }
+
+    for (alias, identifier) in CITY_ALIASES {
+        if !items.contains(where: { $0.displayName == alias }) {
+            items.append(TimezonePickerItem(id: "alias:\(alias)", displayName: alias, identifier: identifier, isAlias: true))
+        }
+    }
+
+    items.sort { $0.displayName.localizedCompare($1.displayName) == .orderedAscending }
+    return items
+}
+
+func filterPickerItems(_ items: [TimezonePickerItem], matching searchText: String) -> [TimezonePickerItem] {
+    if searchText.isEmpty { return items }
+    return items.filter { item in
+        if item.displayName.localizedCaseInsensitiveContains(searchText) { return true }
+        let searchable = item.identifier.replacingOccurrences(of: "_", with: " ").replacingOccurrences(of: "/", with: " ")
+        if searchable.localizedCaseInsensitiveContains(searchText) { return true }
+        if let tz = TimeZone(identifier: item.identifier) {
+            if formatGMTOffset(tz).localizedCaseInsensitiveContains(searchText) { return true }
+        }
+        return false
+    }
+}
+
 // Alias name → timezone identifier for popular cities not in IANA
 let CITY_ALIASES: [String: String] = [
     // India

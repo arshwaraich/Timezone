@@ -5,7 +5,9 @@
 //  Created by Arsh Waraich on 2026-02-24.
 //
 
+import Combine
 import SwiftUI
+import WidgetKit
 
 // MARK: - Main View
 
@@ -16,6 +18,11 @@ struct ContentView: View {
     @State private var timeOffset: Double = 0
     @State private var stars: [Star] = []
     @State private var showingTimezonePicker = false
+    #if os(macOS)
+    @State private var selection: TimezoneEntry.ID?
+    @State private var searchText = ""
+    @State private var isSearching = false
+    #endif
 
     var body: some View {
         GeometryReader { geo in
@@ -25,15 +32,39 @@ struct ContentView: View {
                 Color(red: 0.035, green: 0.035, blue: 0.043)
                     .ignoresSafeArea()
 
+                #if os(macOS)
+                macLayout
+                #else
                 if isCompact {
                     compactLayout
                 } else {
                     regularLayout
                 }
+                #endif
             }
         }
+        #if os(macOS)
+        .navigationTitle(offsetDescription)
+        .focusedSceneValue(\.timezoneActions, TimezoneActions(
+            addCity: { isSearching = true },
+            resetTime: resetTime,
+            isShifted: timeOffset != 0
+        ))
+        .toolbar {
+            if timeOffset != 0 {
+                ToolbarItem {
+                    Button("Now", systemImage: "arrow.uturn.backward", action: resetTime)
+                        .help("Return to the current time")
+                }
+            }
+        }
+        .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
+        #endif
         .onAppear {
             generateStars()
+            updateTimezoneData()
+        }
+        .onReceive(Timer.publish(every: 5, on: .main, in: .common).autoconnect()) { _ in
             updateTimezoneData()
         }
         .onChange(of: timeOffset) { updateTimezoneData() }
@@ -79,9 +110,100 @@ struct ContentView: View {
         .frame(maxWidth: 1200)
     }
 
+    // MARK: - Mac Layout
+
+    #if os(macOS)
+    private var macLayout: some View {
+        NavigationSplitView {
+            List(selection: $selection) {
+                if searchText.isEmpty {
+                    ForEach(timezones) { tz in
+                        if let data = timezoneData[tz.zone] {
+                            TimezoneRow(entry: tz, data: data)
+                                .contextMenu {
+                                    Button("Remove", systemImage: "trash", role: .destructive) {
+                                        removeTimezone(tz)
+                                    }
+                                    .disabled(timezones.count <= 1)
+                                }
+                        }
+                    }
+                    .onDelete(perform: removeTimezone)
+                } else {
+                    // Typing in the sidebar search finds cities to add
+                    ForEach(filterPickerItems(allPickerItems(), matching: searchText)) { item in
+                        searchResult(for: item)
+                    }
+                }
+            }
+            .listStyle(.sidebar)
+            .searchable(text: $searchText, isPresented: $isSearching, placement: .sidebar, prompt: "Add a city")
+            .onDeleteCommand {
+                if let entry = timezones.first(where: { $0.id == selection }) {
+                    removeTimezone(entry)
+                }
+            }
+            .navigationSplitViewColumnWidth(min: 260, ideal: 300, max: 380)
+        } detail: {
+            // Chart grows with the window instead of holding 4:3
+            VStack(spacing: 16) {
+                chart
+                DialView(dialOffset: $dialOffset, timeOffset: $timeOffset)
+            }
+            .padding([.horizontal, .bottom], 16)
+            .padding(.top, 4)
+        }
+    }
+
+    private func searchResult(for item: TimezonePickerItem) -> some View {
+        let alreadyAdded = timezones.contains { $0.zone == item.identifier }
+        return Button {
+            addTimezone(item.identifier, name: item.displayName)
+            searchText = ""
+            isSearching = false
+        } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(item.displayName)
+                    if let tz = TimeZone(identifier: item.identifier) {
+                        Text([item.region, formatGMTOffset(tz)].filter { !$0.isEmpty }.joined(separator: " · "))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Spacer()
+                Image(systemName: alreadyAdded ? "checkmark" : "plus")
+                    .foregroundStyle(.secondary)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(alreadyAdded)
+    }
+
+    private var offsetDescription: String {
+        let minutes = Int((timeOffset * 60).rounded())
+        guard minutes != 0 else { return "Now" }
+        let span = "\(abs(minutes) / 60)h \(abs(minutes) % 60)m"
+        return minutes > 0 ? "\(span) from now" : "\(span) ago"
+    }
+
+    private func resetTime() {
+        withAnimation(.snappy) {
+            dialOffset = 0
+            timeOffset = 0
+        }
+    }
+    #endif
+
     // MARK: - Chart
 
     private var chartView: some View {
+        chart
+            .aspectRatio(4.0 / 3.0, contentMode: .fit)
+    }
+
+    private var chart: some View {
         GeometryReader { geo in
             let w = geo.size.width
             let h = geo.size.height
@@ -130,7 +252,6 @@ struct ContentView: View {
             }
             .shadow(color: .black.opacity(0.4), radius: 20)
         }
-        .aspectRatio(4.0 / 3.0, contentMode: .fit)
     }
 
     // MARK: - Timezone List
@@ -201,23 +322,21 @@ struct ContentView: View {
         saveTimezones()
     }
 
+    #if os(macOS)
+    private func removeTimezone(_ entry: TimezoneEntry) {
+        guard timezones.count > 1 else { return }
+        timezones.removeAll { $0.id == entry.id }
+        saveTimezones()
+    }
+    #endif
+
     private func saveTimezones() {
-        let saved = timezones.map { SavedTimezone(name: $0.name, zone: $0.zone, colorIndex: $0.colorIndex) }
-        if let data = try? JSONEncoder().encode(saved) {
-            UserDefaults.standard.set(data, forKey: "savedTimezones")
-        }
+        TimezoneStore.save(timezones.map { SavedTimezone(name: $0.name, zone: $0.zone, colorIndex: $0.colorIndex) })
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     static func loadTimezones() -> [TimezoneEntry] {
-        guard let data = UserDefaults.standard.data(forKey: "savedTimezones"),
-              let saved = try? JSONDecoder().decode([SavedTimezone].self, from: data),
-              !saved.isEmpty else {
-            return [
-                TimezoneEntry(name: "Toronto", zone: "America/Toronto", color: COLORS[0], colorIndex: 0),
-                TimezoneEntry(name: "New Delhi", zone: "Asia/Kolkata", color: COLORS[1], colorIndex: 1),
-            ]
-        }
-        return saved.map { s in
+        TimezoneStore.load().map { s in
             let idx = s.colorIndex % COLORS.count
             return TimezoneEntry(name: s.name, zone: s.zone, color: COLORS[idx], colorIndex: idx)
         }

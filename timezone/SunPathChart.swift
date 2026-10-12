@@ -72,7 +72,7 @@ struct SunPathChart: View {
                     Text(tz.name)
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundColor(.white),
-                    at: CGPoint(x: cx, y: cy - 18),
+                    at: CGPoint(x: min(max(cx, 44), w - 44), y: cy - 18),
                     anchor: .center
                 )
             }

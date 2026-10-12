@@ -12,7 +12,12 @@ struct DialView: View {
     private let pixelsPerHour: CGFloat = 20
     private let markSpacing: CGFloat = 4
     @State private var lastMajorMarkIndex: Int = 0
+    #if os(iOS)
     private let lightImpact = UIImpactFeedbackGenerator(style: .light)
+    #else
+    @State private var isHovering = false
+    @State private var scrollMonitor: Any?
+    #endif
     private let majorMarkSpacing: CGFloat = 40 // markSpacing * 10
 
     var body: some View {
@@ -78,15 +83,40 @@ struct DialView: View {
         .onChange(of: dragOffset) {
             let currentTotal = dialOffset + dragOffset
             timeOffset = Double(-(currentTotal / pixelsPerHour))
-
-            let majorMark = Int(round(currentTotal / majorMarkSpacing))
-            if majorMark != lastMajorMarkIndex {
-                lightImpact.impactOccurred()
-                lastMajorMarkIndex = majorMark
-            }
+            tickIfNeeded(at: currentTotal)
         }
+        #if os(iOS)
         .onAppear {
             lightImpact.prepare()
         }
+        #else
+        .onHover { isHovering = $0 }
+        .onAppear {
+            // Trackpad and mouse-wheel scrolling over the dial scrubs time
+            scrollMonitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { event in
+                guard isHovering else { return event }
+                let delta = abs(event.scrollingDeltaX) > abs(event.scrollingDeltaY) ? event.scrollingDeltaX : event.scrollingDeltaY
+                dialOffset += delta
+                timeOffset = Double(-(dialOffset / pixelsPerHour))
+                tickIfNeeded(at: dialOffset)
+                return nil
+            }
+        }
+        .onDisappear {
+            if let scrollMonitor { NSEvent.removeMonitor(scrollMonitor) }
+            scrollMonitor = nil
+        }
+        #endif
+    }
+
+    private func tickIfNeeded(at offset: CGFloat) {
+        let majorMark = Int(round(offset / majorMarkSpacing))
+        guard majorMark != lastMajorMarkIndex else { return }
+        #if os(iOS)
+        lightImpact.impactOccurred()
+        #else
+        NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
+        #endif
+        lastMajorMarkIndex = majorMark
     }
 }
